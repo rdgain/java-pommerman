@@ -1,5 +1,6 @@
 package objects;
 
+import utils.EventsStatistics;
 import utils.Types;
 import utils.Utils;
 import utils.Vector2d;
@@ -44,25 +45,47 @@ public class Bomb extends GameObject {
         return copy;
     }
 
-    public ArrayList<GameObject> explode(boolean forceExplode, Types.TILETYPE[][] board, Types.TILETYPE[][] powerups) {
+    public ArrayList<GameObject> explode(boolean forceExplode, Types.TILETYPE[][] board, Types.TILETYPE[][] powerups, EventsStatistics statistics) {
         ArrayList<GameObject> flames = new ArrayList<>();
 
         if (life == 0 || forceExplode) {
+            boolean wasted = true;
+
             if (VERBOSE)
                 System.out.println("KABOOM at "+position.toString());
 
             // First add the flame at the current position
+            TILETYPE underneath;
             tryToAddFlame(position.x, position.y, board, powerups, flames);
+
             boolean advanceP = true;
             boolean advanceM = true;
             for (int i = 1; i < blastStrength; i++) {
                 if (advanceP) {
                     int x1 = position.x + i;
-                    advanceP = tryToAddFlame(x1, position.y, board, powerups, flames);
+                    underneath = tryToAddFlame(x1, position.y, board, powerups, flames);
+                    advanceP = underneath != TILETYPE.WOOD && underneath != TILETYPE.RIGID;
+                    if (underneath != TILETYPE.PASSAGE && underneath != TILETYPE.RIGID) {
+                        wasted = false;
+                    }
+                    if (underneath == TILETYPE.WOOD) {
+                        if (playerIdx != -1) {
+                            statistics.woodsDestroyed[playerIdx] += 1;
+                        }
+                    }
                 }
                 if (advanceM) {
                     int x2 = position.x - i;
-                    advanceM = tryToAddFlame(x2, position.y, board, powerups, flames);
+                    underneath = tryToAddFlame(x2, position.y, board, powerups, flames);
+                    advanceM = underneath != TILETYPE.WOOD && underneath != TILETYPE.RIGID;
+                    if (underneath != TILETYPE.PASSAGE && underneath != TILETYPE.RIGID) {
+                        wasted = false;
+                    }
+                    if (underneath == TILETYPE.WOOD) {
+                        if (playerIdx != -1) {
+                            statistics.woodsDestroyed[playerIdx] += 1;
+                        }
+                    }
                 }
             }
             advanceM = true;
@@ -70,11 +93,35 @@ public class Bomb extends GameObject {
             for (int i = 1; i < blastStrength; i++) {
                 if (advanceP) {
                     int y1 = position.y + i;
-                    advanceP = tryToAddFlame(position.x, y1, board, powerups, flames);
+                    underneath = tryToAddFlame(position.x, y1, board, powerups, flames);
+                    advanceP = underneath != TILETYPE.WOOD && underneath != TILETYPE.RIGID;
+                    if (underneath != TILETYPE.PASSAGE && underneath != TILETYPE.RIGID) {
+                        wasted = false;
+                    }
+                    if (underneath == TILETYPE.WOOD) {
+                        if (playerIdx != -1) {
+                            statistics.woodsDestroyed[playerIdx] += 1;
+                        }
+                    }
                 }
                 if (advanceM) {
                     int y2 = position.y - i;
-                    advanceM = tryToAddFlame(position.x, y2, board, powerups, flames);
+                    underneath = tryToAddFlame(position.x, y2, board, powerups, flames);
+                    advanceM = underneath != TILETYPE.WOOD && underneath != TILETYPE.RIGID;
+                    if (underneath != TILETYPE.PASSAGE && underneath != TILETYPE.RIGID) {
+                        wasted = false;
+                    }
+                    if (underneath == TILETYPE.WOOD) {
+                        if (playerIdx != -1) {
+                            statistics.woodsDestroyed[playerIdx] += 1;
+                        }
+                    }
+                }
+            }
+
+            if (wasted) {
+                if (playerIdx != -1) {
+                    statistics.wastedBombs[playerIdx] += 1;
                 }
             }
             return flames;
@@ -82,10 +129,10 @@ public class Bomb extends GameObject {
         return null;
     }
 
-    private boolean tryToAddFlame(int x, int y, Types.TILETYPE[][] board, Types.TILETYPE[][] powerups,
+    private TILETYPE tryToAddFlame(int x, int y, Types.TILETYPE[][] board, Types.TILETYPE[][] powerups,
                                   ArrayList<GameObject> flames) {
         if (x < 0 || y < 0 || x >= board.length || y >= board.length) {
-            return false;
+            return null;
         }
         ArrayList<Types.TILETYPE> flameCollisions = new ArrayList<>();
         flameCollisions.add(Types.TILETYPE.RIGID);
@@ -105,10 +152,10 @@ public class Bomb extends GameObject {
 //                powerups[y][x] = board[y][x];
 
             board[y][x] = f.getType();
-            return type != Types.TILETYPE.WOOD;  // Flames should stop at first wooden block
+            return type;  // Flames should stop at first wooden block
         }
         else
-            return false;
+            return TILETYPE.RIGID;
     }
 
     // Getters, setters

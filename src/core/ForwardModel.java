@@ -168,7 +168,7 @@ public class ForwardModel {
      * Executes "saveToTextFile" method of EventsStatistics class, only works for the true model.
      */
     void saveEventsStatistics(String gameIdStr, long seed) {
-        if (trueModel && LOGGING_STATISTICS && es != null)
+        if (trueModel && SAVING_STATISTICS && es != null)
             es.saveToTextFile(gameIdStr, seed);
     }
 
@@ -221,7 +221,7 @@ public class ForwardModel {
         else
             generateBoard(intBoard, seed);
 
-        if(trueModel && LOGGING_STATISTICS){
+        if(LOGGING_STATISTICS){
             tick = 0;
             isAgentStuck = new boolean[]{false, false, false, false};
             es = new EventsStatistics();
@@ -424,7 +424,7 @@ public class ForwardModel {
         }
 
         // 17. Logging
-        if(trueModel && LOGGING_STATISTICS) {
+        if(LOGGING_STATISTICS) {
             for (GameObject p : aliveAgents) {
                 int agentID = p.getType().getKey() - 10;
                 boolean isStuck = isStuckAdvanced(board, bombs, ((Avatar) p)); //isStuck(board, ((Avatar) p));
@@ -567,7 +567,7 @@ public class ForwardModel {
                 if (flameOccupancy.get(b.getPosition()) != null) forceExplosion = true;
 
                 // Find the flame owners who triggered the explosion
-                if(trueModel && LOGGING_STATISTICS) {
+                if(LOGGING_STATISTICS) {
                     if (forceExplosion) {
                         StringBuilder eventSB = new StringBuilder();
                         eventSB.append(tick + " | [" + ((Bomb) b).getPlayerIdx() + "]'s bomb exploded at ("
@@ -594,7 +594,7 @@ public class ForwardModel {
                 // TODO: Wood removals happen here, but within Bomb class, what's the best way of doing this? (to count them)
 
                 // This bomb will explode and create new flames if life reached 0, or forced to explode
-                ArrayList<GameObject> newFlames = ((Bomb) b).explode(forceExplosion, board, powerups);
+                ArrayList<GameObject> newFlames = ((Bomb) b).explode(forceExplosion, board, powerups, es);
                 if (newFlames != null && newFlames.size() > 0) {
 
                     flames.addAll(newFlames);
@@ -639,12 +639,13 @@ public class ForwardModel {
                 p.setLife(0);
                 deadAgentsThisTick.add(p);
 
-                if(trueModel && LOGGING_STATISTICS) {
+                if(LOGGING_STATISTICS) {
                     StringBuilder eventSB = new StringBuilder();
-                    eventSB.append(tick + " | [" + (((Avatar) p).getPlayerID() - 10) + "] died at ("
+                    int diedIdx = (((Avatar) p).getPlayerID() - 10);
+                    eventSB.append(tick + " | [" + diedIdx + "] died at ("
                             + nextPos.x + ", " + nextPos.y + ") by ");
 
-                    Set<Integer> killerIDs = new HashSet<>();
+                    ArrayList<Integer> killerIDs = new ArrayList<>();
                     for (GameObject flame : this.flames) {
                         if (flame.getPosition().equals(nextPos))
                             killerIDs.add(((Flame) flame).playerIdx);
@@ -660,6 +661,8 @@ public class ForwardModel {
                     eventSB.append("\n");
 
                     es.events.add(eventSB.toString());
+
+                    es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
                 }
 
                 if (VERBOSE_FM_DEBUG) {
@@ -772,22 +775,22 @@ public class ForwardModel {
                     agent.reduceAmmo();
                     addBomb(pos.x, pos.y, agent.getBlastStrength(), BOMB_LIFE, i, true);
                     successful = true;
-                    if(trueModel && LOGGING_STATISTICS) {
+                    if(LOGGING_STATISTICS) {
                         int agentID = (agent.getPlayerID() - 10);
                         String eventString = tick + " | [" + agentID + "] placed a bomb at ("
                                 +  pos.x + ", " + pos.y + ")\n";
                         es.events.add(eventString);
                         es.bombsPlaced[agentID]++;
-                        es.bombPlacementsAttempted[agentID]++;
+//                        es.bombPlacementsAttempted[agentID]++;
                     }
                 } else {
                     successful = false;
-                    if(trueModel && LOGGING_STATISTICS) {
+                    if(LOGGING_STATISTICS) {
                         int agentID = (agent.getPlayerID() - 10);
                         String eventString = tick + " | [" + agentID + "] failed to place a bomb at ("
                                 +  pos.x + ", " + pos.y + ")\n";
                         es.events.add(eventString);
-                        es.bombPlacementsAttempted[agentID]++;
+//                        es.bombPlacementsAttempted[agentID]++;
                     }
                 }
             }
@@ -811,7 +814,7 @@ public class ForwardModel {
         if (x >= 0 && x < size && y >= 0 && y < size) {
             if (board[y][x] == Types.TILETYPE.EXTRABOMB) {
                 p.addAmmo();
-                if(trueModel && LOGGING_STATISTICS) {
+                if(LOGGING_STATISTICS) {
                     String eventString = tick + " | [" + (p.getPlayerID() - 10) + "] picked up AMMO at ("
                             +  x + ", " + y + ")\n";
                     es.events.add(eventString);
@@ -819,7 +822,7 @@ public class ForwardModel {
                 }
             } else if (board[y][x] == Types.TILETYPE.INCRRANGE) {
                 p.addBlastStrength();
-                if(trueModel && LOGGING_STATISTICS) {
+                if(LOGGING_STATISTICS) {
                     String eventString = tick + " | [" + (p.getPlayerID() - 10) + "] picked up BLAST STRENGTH at ("
                             +  x + ", " + y + ")\n";
                     es.events.add(eventString);
@@ -827,7 +830,7 @@ public class ForwardModel {
                 }
             } else if (board[y][x] == Types.TILETYPE.KICK) {
                 p.setCanKick();
-                if(trueModel && LOGGING_STATISTICS) {
+                if(LOGGING_STATISTICS) {
                     String eventString = tick + " | [" + (p.getPlayerID() - 10) + "] picked up CAN KICK at ("
                             +  x + ", " + y + ")\n";
                     es.events.add(eventString);
@@ -1087,6 +1090,7 @@ public class ForwardModel {
             avatarPosition = avatar.getPosition();
             range = avatar.getVisionRange();
         }
+        copy.es = es.copy();
 
         // Init new power-up and board arrays
         copy.powerups = new Types.TILETYPE[size][size];
