@@ -579,7 +579,9 @@ public class ForwardModel {
                         }
                         for (Integer id : killerIDs) {
                             eventSB.append("[" + id + "]");
-                            es.bombsTriggered[id]++;
+                            if (id != -1) {
+                                es.bombsTriggered[id]++;
+                            }
                         }
                         eventSB.append("\n");
                         es.events.add(eventSB.toString());
@@ -662,7 +664,9 @@ public class ForwardModel {
 
                     es.events.add(eventSB.toString());
 
-                    es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                    if (!killerIDs.isEmpty()) {
+                        es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                    }
                 }
 
                 if (VERBOSE_FM_DEBUG) {
@@ -1091,6 +1095,7 @@ public class ForwardModel {
             range = avatar.getVisionRange();
         }
         copy.es = es.copy();
+        copy.isAgentStuck = isAgentStuck.clone();
 
         // Init new power-up and board arrays
         copy.powerups = new Types.TILETYPE[size][size];
