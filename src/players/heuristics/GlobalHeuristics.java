@@ -41,7 +41,7 @@ public class GlobalHeuristics extends StateHeuristic {
     public double evaluateRaw(GameState gs) {
         ForwardModel fm = gs.getFM();
         EventsStatistics es = fm.getEventStats();
-        int pid = gs.getPlayerId();
+        int pid = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
         // calculate personalised heuristics
         double[] playerStats = es.getPlayerStats(pid);
@@ -60,8 +60,9 @@ public class GlobalHeuristics extends StateHeuristic {
                 globalScore += globalWeights[i] * stats[i];
             }
         }
-
-        return playerScore - (globalScore/Types.NUM_PLAYERS);
+        double result =  playerScore - (globalScore/Types.NUM_PLAYERS);
+        System.out.println("Heuristics = " + result + " playerScore = " + playerScore);
+        return result;
     }
 
     public static class BoardStats

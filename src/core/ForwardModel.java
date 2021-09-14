@@ -664,9 +664,13 @@ public class ForwardModel {
 
                     es.events.add(eventSB.toString());
 
-                    es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
-                    for (int killer: killerIDs){
-                        es.numKills[killer] += 1;
+                    if (killerIDs.size() > 0) {
+                        es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                        for (int killer : killerIDs) {
+                            if (killer != -1) {
+                                es.numKills[killer] += 1;
+                            }
+                        }
                     }
                 }
 
@@ -1152,6 +1156,10 @@ public class ForwardModel {
             copy.bombBlastStrength[position.y][position.x] = bomb.getBlastStrength();
             copy.bombLife[position.y][position.x] = bomb.getLife();
         }
+    }
+
+    public EventsStatistics getEventStats(){
+        return es;
     }
 
     @Override
