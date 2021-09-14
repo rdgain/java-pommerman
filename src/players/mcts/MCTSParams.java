@@ -20,13 +20,14 @@ public class MCTSParams implements ParameterSet {
 
     public final int CUSTOM_HEURISTIC = 0;
     public final int ADVANCED_HEURISTIC = 1;
+    public final int GLOBAL_HEURISTIC = 2;
 
     public double epsilon = 1e-6;
 
     // Parameters
     public double K = Math.sqrt(2);
     public int rollout_depth = 8;//10;
-    public int heuristic_method = CUSTOM_HEURISTIC;
+    public int heuristic_method = GLOBAL_HEURISTIC;
 
     // Budget settings
     public int stop_type = STOP_TIME;

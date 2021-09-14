@@ -498,6 +498,11 @@ public class GameState {
         System.out.println();
     }
 
+    // returns the forward model
+    public ForwardModel getFM(){
+        return this.model;
+    }
+
     /**
      * @return a Json string representing the current game state
      */

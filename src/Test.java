@@ -32,16 +32,16 @@ public class Test {
 
         MCTSParams mctsParams = new MCTSParams();
         mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
-        mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
+        mctsParams.heuristic_method = mctsParams.GLOBAL_HEURISTIC;
 
         RHEAParams rheaParams = new RHEAParams();
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
-        players.add(new SimpleEvoAgent(seed, playerID++).setIsolating(true));
+//        players.add(new SimpleEvoAgent(seed, playerID++).setIsolating(true));
         players.add(new SimpleEvoAgent(seed, playerID++));
 //        players.add(new SimpleEvoAgent(seed, playerID++));
 //        players.add(new SimpleEvoAgent(seed, playerID++));
-        //players.add(new MCTSPlayer(seed, playerID++, mctsParams));
+        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
 
 //        players.add(new SimplePlayer(seed, playerID++));
 //        players.add(new RHEAPlayer(seed, playerID++, rheaParams));

@@ -19,6 +19,7 @@ public class EventsStatistics {
     public int[] woodsDestroyed = {0, 0, 0, 0};
     public int[] powerUpsTaken = {0, 0, 0, 0};
     public int[] killedBy = {-1, -1, -1, -1};  // id of player who killed idx
+    public int[] numKills = {0, 0, 0, 0};
     public int[] wastedBombs = {0, 0, 0, 0};  // bombs that explode and touch nothing else
 
     public static int REP = 0;
@@ -34,6 +35,7 @@ public class EventsStatistics {
         es.woodsDestroyed = woodsDestroyed.clone();
         es.powerUpsTaken = powerUpsTaken.clone();
         es.killedBy = killedBy.clone();
+        es.numKills = numKills.clone();
         es.wastedBombs = wastedBombs.clone();
         return es;
     }
@@ -61,6 +63,19 @@ public class EventsStatistics {
         } catch (IOException i) {
             i.printStackTrace();
         }
+    }
+
+    public double[] getPlayerStats(int playerID){
+        double[] stats = new double[]{
+            bombsTriggered[playerID],
+            bombsPlaced[playerID],
+            woodsDestroyed[playerID],
+            powerUpsTaken[playerID],
+            numKills[playerID],
+            wastedBombs[playerID],
+        };
+        return stats;
+
     }
 
 }

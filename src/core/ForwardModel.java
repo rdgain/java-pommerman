@@ -663,6 +663,9 @@ public class ForwardModel {
                     es.events.add(eventSB.toString());
 
                     es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                    for (int killer: killerIDs){
+                        es.numKills[killer] += 1;
+                    }
                 }
 
                 if (VERBOSE_FM_DEBUG) {
@@ -1071,6 +1074,10 @@ public class ForwardModel {
         }
         stringBuilder.append("\n");
         return stringBuilder.toString();
+    }
+
+    public EventsStatistics getEventStats(){
+        return this.es;
     }
 
     /**
