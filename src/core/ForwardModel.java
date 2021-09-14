@@ -664,8 +664,9 @@ public class ForwardModel {
 
                     es.events.add(eventSB.toString());
 
-                    if (!killerIDs.isEmpty()) {
-                        es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                    es.killedBy[diedIdx] = killerIDs.get(0);  // TODO: overlapping flames by diff people would give multiple killers
+                    for (int killer: killerIDs){
+                        es.numKills[killer] += 1;
                     }
                 }
 
