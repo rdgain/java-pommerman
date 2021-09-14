@@ -9,8 +9,8 @@ public class GlobalHeuristics extends StateHeuristic {
     private BoardStats rootBoardStats;
 
     // The order is: bombsTriggered, bombsPlaced, woodsDestroyed, powerUpsTaken, numKills, wastedBombs
-    private double[] personalWeights = new double[]{0.1, 0.2, 0.05, 0.15, 0.5, -0.5};
-    private double[] globalWeights = new double[]{0.1, 0.2, 0.05, 0.15, 0.5, -0.5};
+    private double[] personalWeights = new double[]{0.1, 0.2, 0.05, 0.15, 0.3, -0.5};
+    private double[] globalWeights = new double[]{0.1, 0.2, 0.05, 0.15, 0.3, -0.5};
 
     public GlobalHeuristics(GameState root) {
         rootBoardStats = new BoardStats(root);
@@ -26,7 +26,7 @@ public class GlobalHeuristics extends StateHeuristic {
         // Compute a score relative to the root's state.
 //        BoardStats lastBoardState = new BoardStats(gs);
 //        double rawScore = rootBoardStats.score(lastBoardState);
-        double rawScore = evaluateRaw(gs);
+        double rawScore = evaluateRaw2(gs);
 
         if(gameOver && win == Types.RESULT.LOSS)
             rawScore = -1;
@@ -44,7 +44,7 @@ public class GlobalHeuristics extends StateHeuristic {
         int pid = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
         // calculate personalised heuristics
-        double[] playerStats = es.getPlayerStats(pid);
+        int[] playerStats = es.getPlayerStats(pid);
         double playerScore = 0.0;
         for (int i = 0; i < personalWeights.length; i++){
             playerScore += personalWeights[i] * playerStats[i];
@@ -55,7 +55,7 @@ public class GlobalHeuristics extends StateHeuristic {
         double globalScore = 0.0;
         // todo alive players?
         for (int id = 0; id < Types.NUM_PLAYERS; id++){
-            double[] stats = es.getPlayerStats(id);
+            int[] stats = es.getPlayerStats(id);
             for (int i = 0; i < globalWeights.length; i++){
                 globalScore += globalWeights[i] * stats[i];
             }
@@ -63,6 +63,46 @@ public class GlobalHeuristics extends StateHeuristic {
         double result =  playerScore - (globalScore/Types.NUM_PLAYERS);
         System.out.println("Heuristics = " + result + " playerScore = " + playerScore);
         return result;
+    }
+
+    public double evaluateRaw2(GameState gs) {
+        ForwardModel fm = gs.getFM();
+        EventsStatistics es = fm.getEventStats();
+        int pid = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
+
+        int[] allStatSums = es.getStatSums();
+        int[] playerStats = es.getPlayerStats(pid);
+
+        double playerScore = 0.0;
+        for (int i = 0; i < personalWeights.length; i++){
+            playerScore += personalWeights[i] * (playerStats[i] * 1.0 / (allStatSums[i] + 0.001));
+        }
+
+        System.out.println("playerScore = " + playerScore);
+
+
+        return playerScore;
+
+//        // calculate personalised heuristics
+//        double[] playerStats = es.getPlayerStats(pid);
+//        double playerScore = 0.0;
+//        for (int i = 0; i < personalWeights.length; i++){
+//            playerScore += personalWeights[i] * playerStats[i];
+//        }
+//
+//
+//        //  calculate global heuristics
+//        double globalScore = 0.0;
+//        // todo alive players?
+//        for (int id = 0; id < Types.NUM_PLAYERS; id++){
+//            double[] stats = es.getPlayerStats(id);
+//            for (int i = 0; i < globalWeights.length; i++){
+//                globalScore += globalWeights[i] * stats[i];
+//            }
+//        }
+//        double result =  playerScore - (globalScore/Types.NUM_PLAYERS);
+//        System.out.println("Heuristics = " + result + " playerScore = " + playerScore);
+//        return result;
     }
 
     public static class BoardStats

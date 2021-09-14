@@ -65,8 +65,8 @@ public class EventsStatistics {
         }
     }
 
-    public double[] getPlayerStats(int playerID){
-        double[] stats = new double[]{
+    public int[] getPlayerStats(int playerID){
+        int[] stats = new int[]{
             bombsTriggered[playerID],
             bombsPlaced[playerID],
             woodsDestroyed[playerID],
@@ -76,6 +76,34 @@ public class EventsStatistics {
         };
         return stats;
 
+    }
+
+    public int[] getStatSums(){
+        int allbombsTriggered = arraySum(bombsTriggered);
+        int allbombsPlaced = arraySum(bombsPlaced);
+        int allwoodsDestroyed = arraySum(woodsDestroyed);
+        int allpowerUpsTaken = arraySum(powerUpsTaken);
+//        int allkilledBy = arraySum(killedBy);  // id of player who killed idx
+        int allnumKills = arraySum(numKills);
+        int allwastedBombs = arraySum(wastedBombs);
+        int[] results = new int[]{
+                allbombsTriggered,
+                allbombsPlaced,
+                allwoodsDestroyed,
+                allpowerUpsTaken,
+                allnumKills,
+                allwastedBombs,
+        };
+        return results;
+    }
+
+
+    public static int arraySum(int[] a){
+        int result = 0;
+        for (int i = 0; i < a.length; i++){
+            result += a[i];
+        }
+        return result;
     }
 
 }
